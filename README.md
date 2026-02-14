@@ -1,79 +1,45 @@
-# 🚀 Kanban API - Backend
-
-Esta é uma API robusta e escalável desenvolvida com **Elixir**, **Phoenix** e **Absinthe (GraphQL)** para o desafio técnico KanbanPro. O projeto foi construído focando em alta performance, concorrência nativa da BEAM e uma interface de dados moderna.
-
-## 🛠️ Stack Tecnológica e Arquitetura
-
-* **Linguagem:** Elixir 1.15+ (Erlang/OTP).
-* **Framework:** Phoenix 1.7+ (Modo API).
-* **Interface:** GraphQL com Absinthe (Schema-first).
-* **Banco de Dados:** PostgreSQL com Ecto.
-* **Servidor Web:** Bandit (Servidor HTTP focado em performance).
-* **Arquitetura:** Baseada em **Contextos do Phoenix**, garantindo que a lógica de negócio (`Kanban`) seja independente da camada de transporte (GraphQL).
 
 
+# KanbanApi | Infrastructure e Persistent Data Layer
 
-## 🧠 Decisões de Engenharia
+Esta é a unidade de processamento e persistência do sistema KanbanPro. Desenvolvida em Elixir e utilizando o framework Phoenix, a API foi projetada para oferecer alta escalabilidade, concorrência segura e uma interface de dados robusta via GraphQL.
 
-1.  **GraphQL vs REST:** Optamos por GraphQL para evitar problemas de *overfetching* e *underfetching*, permitindo que o front-end (KanbanPro) consuma apenas os campos necessários, como `attachments` e `priority`.
-2.  **Filtros Dinâmicos:** Implementação de busca avançada usando `ilike` e fragmentos de Query do Ecto para filtrar por Local, Data, Prioridade e Termos de busca simultaneamente.
-3.  **Segurança de Dados:** * Validações customizadas no `Ecto.Changeset` para impedir tarefas com datas retroativas.
-    * Uso de `Enums` para garantir a integridade dos campos `status` e `priority`.
-4.  **Performance:** Paginação baseada em `offset` e `limit` configurável via argumentos da Query.
+## Engenharia de Infraestrutura
 
-## 📖 Documentação das Rotas (GraphQL)
+### 1. Modelo de Concorrência (BEAM VM)
+A API utiliza o modelo de atores da Erlang VM, permitindo que cada requisição ou tarefa de sistema (como migrações) seja processada de forma isolada e paralela, garantindo que falhas em um processo não comprometam a estabilidade global da aplicação.
 
-A API utiliza o **GraphQL Playground** como documentação interativa. Ao rodar o projeto, você pode acessar a interface visual para explorar o Schema e testar as rotas em tempo real.
+### 2. Ciclo de Vida e Migrações Automáticas
+Implementação de um sistema de auto-migração injetado na árvore de supervisão da aplicação. Ao iniciar o container em ambientes de nuvem (Render/Docker), a aplicação verifica a integridade do schema do banco de dados e executa scripts de migração de forma autônoma, eliminando a necessidade de intervenção manual no terminal.
 
-* **Documentação Interativa:** `http://localhost:4000/`
-* **Endpoint de Produção:** `http://localhost:4000/api`
-
-### Exemplos de Requisição
-
-#### 🔍 Listar Tarefas (Query)
-```graphql
-query {
-  listTasks(
-    search: "Desenvolvimento",
-    priority: "high",
-    page: 1,
-    page_size: 10
-  ) {
-    id
-    title
-    status
-    location
-    dueDate
-    attachments
-  }
-}
+### 3. Camada de Dados com Absinthe (GraphQL)
+Em vez de endpoints fixos, a API expõe um Schema GraphQL tipado. Isso permite que o frontend solicite exatamente os campos necessários, reduzindo o payload de rede e oferecendo uma documentação viva da estrutura de dados.
 
 
-➕ Criar Nova Tarefa (Mutation)
-GraphQL
-mutation {
-  createTask(
-    title: "Deploy da API",
-    priority: "critical",
-    location: "Cloud",
-    dueDate: "2026-02-20",
-    attachments: ["[https://docs.link.com/setup.pdf](https://docs.link.com/setup.pdf)"]
-  ) {
-    id
-    title
-  }
-}
-🚀 Como Executar
-Instale as dependências:
 
-Bash
-mix deps.get
-Crie e migre o banco de dados:
+### 4. Persistência de Dados e Ecto
+Uso do Ecto para comunicação com PostgreSQL. A arquitetura separa claramente os Schemas (definição de dados) dos Contextos (regras de negócio), seguindo os princípios de Domain-Driven Design (DDD).
 
-Bash
-mix ecto.setup
-Inicie o servidor Phoenix:
+## Stack Tecnológica
 
-Bash
-mix phx.server
-Desenvolvido por Nathalia Macedo como parte do processo seletivo para a KanbanPro.
+* Elixir e Erlang/OTP: Linguagem funcional para sistemas distribuídos.
+* Phoenix Framework: Infraestrutura para aplicações web de alto desempenho.
+* PostgreSQL: Banco de dados relacional para persistência de missão crítica.
+* Absinthe: Implementação de especificação GraphQL para Elixir.
+* Docker: Containerização para consistência entre ambientes de produção.
+
+## Estrutura do Endpoint GraphQL
+
+A API suporta as seguintes operações principais:
+
+* list_tasks: Recuperação de todas as entidades de tarefa.
+* create_task: Inserção de novos registros com validação de prioridade (low, high, critical).
+* update_task: Atualização atômica de status e metadados.
+* delete_task: Remoção física de registros via ID.
+
+## Procedimento de Deploy
+
+A aplicação está configurada para deploy contínuo via Docker. O comando principal de execução é responsável por:
+1. Inicializar a árvore de supervisão.
+2. Executar migrações de banco de dados pendentes.
+3. Iniciar o servidor Cowboy para escuta de requisições HTTP.
