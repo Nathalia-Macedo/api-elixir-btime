@@ -7,6 +7,15 @@ defmodule KanbanApi.Application do
 
   @impl true
   def start(_type, _args) do
+    # --- ALTERAÇÃO: Migração Automática ---
+    # Dispara a migração em um processo separado para não travar o boot
+    Task.start(fn ->
+      # Aguarda 2 segundos para garantir que o Banco de Dados subiu e está pronto
+      Process.sleep(2000)
+      KanbanApi.Release.migrate()
+    end)
+    # ---------------------------------------
+
     children = [
       KanbanApiWeb.Telemetry,
       KanbanApi.Repo,
