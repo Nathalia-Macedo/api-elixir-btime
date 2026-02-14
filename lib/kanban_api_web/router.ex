@@ -8,9 +8,10 @@ defmodule KanbanApiWeb.Router do
   end
 
   # Rotas de Desenvolvimento (Dashboard)
+  # Nota: No Render (produção), o Mix.env() será :prod, então esta rota sumirá.
   if Mix.env() == :dev do
     scope "/dev" do
-      pipe_through :api # Usando o pipeline de API para evitar o erro do flash
+      pipe_through :api
       live_dashboard "/dashboard", metrics: KanbanApiWeb.Telemetry
     end
   end
@@ -19,13 +20,15 @@ defmodule KanbanApiWeb.Router do
   scope "/" do
     pipe_through :api
 
-    # A rota raiz vira sua documentação estilo "Swagger"
+    # 1. ESPECÍFICA: Endpoint para o Frontend (React/Vercel)
+    # Deve vir ANTES da rota raiz para não ser capturada pelo GraphiQL.
+    forward "/api", Absinthe.Plug,
+      schema: KanbanApiWeb.Schema
+
+    # 2. GENÉRICA: Documentação Interativa (Playground)
+    # Fica por último para servir como "página inicial" da sua API.
     forward "/", Absinthe.Plug.GraphiQL,
       schema: KanbanApiWeb.Schema,
       interface: :playground
-
-    # O endpoint que o seu Frontend vai consumir
-    forward "/api", Absinthe.Plug,
-      schema: KanbanApiWeb.Schema
   end
 end
