@@ -1,23 +1,79 @@
-# 🚀 Kanban API - Elixir & GraphQL
+# 🚀 Kanban API - Backend
 
-API Premium para gerenciamento de quadros Kanban, desenvolvida com Phoenix, Absinthe (GraphQL) e PostgreSQL.
+Esta é uma API robusta e escalável desenvolvida com **Elixir**, **Phoenix** e **Absinthe (GraphQL)** para o desafio técnico KanbanPro. O projeto foi construído focando em alta performance, concorrência nativa da BEAM e uma interface de dados moderna.
 
-## 🛠️ Tecnologias
-- **Elixir** & **Phoenix Framework**
-- **Absinthe** (GraphQL Implementation)
-- **Ecto** (Banco de Dados)
-- **PostgreSQL**
+## 🛠️ Stack Tecnológica e Arquitetura
 
-## 🚀 Como Rodar
-1. Instale as dependências: `mix deps.get`
-2. Crie e migre o banco: `mix ecto.setup`
-3. (Opcional) Popule o banco: `mix run priv/repo/seeds.exs`
-4. Inicie o servidor: `mix phx.server`
+* **Linguagem:** Elixir 1.15+ (Erlang/OTP).
+* **Framework:** Phoenix 1.7+ (Modo API).
+* **Interface:** GraphQL com Absinthe (Schema-first).
+* **Banco de Dados:** PostgreSQL com Ecto.
+* **Servidor Web:** Bandit (Servidor HTTP focado em performance).
+* **Arquitetura:** Baseada em **Contextos do Phoenix**, garantindo que a lógica de negócio (`Kanban`) seja independente da camada de transporte (GraphQL).
 
-Acesse o Playground em: `http://localhost:4000/graphiql`
 
-## 📊 Funcionalidades
-- [x] CRUD completo de tarefas.
-- [x] Filtro por prioridade e busca textual.
-- [x] Paginação escalável (`page` e `page_size`).
-- [x] Validação de data (não permite datas no passado).
+
+## 🧠 Decisões de Engenharia
+
+1.  **GraphQL vs REST:** Optamos por GraphQL para evitar problemas de *overfetching* e *underfetching*, permitindo que o front-end (KanbanPro) consuma apenas os campos necessários, como `attachments` e `priority`.
+2.  **Filtros Dinâmicos:** Implementação de busca avançada usando `ilike` e fragmentos de Query do Ecto para filtrar por Local, Data, Prioridade e Termos de busca simultaneamente.
+3.  **Segurança de Dados:** * Validações customizadas no `Ecto.Changeset` para impedir tarefas com datas retroativas.
+    * Uso de `Enums` para garantir a integridade dos campos `status` e `priority`.
+4.  **Performance:** Paginação baseada em `offset` e `limit` configurável via argumentos da Query.
+
+## 📖 Documentação das Rotas (GraphQL)
+
+A API utiliza o **GraphQL Playground** como documentação interativa. Ao rodar o projeto, você pode acessar a interface visual para explorar o Schema e testar as rotas em tempo real.
+
+* **Documentação Interativa:** `http://localhost:4000/`
+* **Endpoint de Produção:** `http://localhost:4000/api`
+
+### Exemplos de Requisição
+
+#### 🔍 Listar Tarefas (Query)
+```graphql
+query {
+  listTasks(
+    search: "Desenvolvimento",
+    priority: "high",
+    page: 1,
+    page_size: 10
+  ) {
+    id
+    title
+    status
+    location
+    dueDate
+    attachments
+  }
+}
+
+
+➕ Criar Nova Tarefa (Mutation)
+GraphQL
+mutation {
+  createTask(
+    title: "Deploy da API",
+    priority: "critical",
+    location: "Cloud",
+    dueDate: "2026-02-20",
+    attachments: ["[https://docs.link.com/setup.pdf](https://docs.link.com/setup.pdf)"]
+  ) {
+    id
+    title
+  }
+}
+🚀 Como Executar
+Instale as dependências:
+
+Bash
+mix deps.get
+Crie e migre o banco de dados:
+
+Bash
+mix ecto.setup
+Inicie o servidor Phoenix:
+
+Bash
+mix phx.server
+Desenvolvido por Nathalia Macedo como parte do processo seletivo para a KanbanPro.

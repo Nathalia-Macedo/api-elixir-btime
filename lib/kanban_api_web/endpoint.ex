@@ -43,7 +43,7 @@ defmodule KanbanApiWeb.Endpoint do
   # --- CONFIGURAÇÃO DO CORS ---
   # Permite que o seu front-end acesse a API. 
   # O origin: "*" libera para qualquer origem (ideal para desenvolvimento).
-  plug CORSPlug, origin: "*"
+  plug Corsica, origins: "*", allow_headers: :all, allow_methods: :all
 
   plug KanbanApiWeb.Router
 end

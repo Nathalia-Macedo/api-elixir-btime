@@ -43,6 +43,7 @@ defmodule KanbanApi.MixProject do
     {:absinthe_phoenix, "~> 2.0"},
       {:phoenix, "~> 1.8.3"},
       {:cors_plug, "~> 3.0"},
+      {:corsica, "~> 2.1"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.13"},
       {:postgrex, ">= 0.0.0"},
